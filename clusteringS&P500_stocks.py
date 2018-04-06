@@ -1,25 +1,24 @@
-from pylab import plot,show
-from numpy import vstack,array
-from numpy.random import rand
-import numpy as np
-from scipy.cluster.vq import kmeans,vq
+from matplotlib.pyplot import plt
 import pandas as pd
 import pandas_datareader as data
 from math import sqrt
 from sklearn.cluster import KMeans
 from matplotlib import pyplot as plt
-
-#############Collecting the list of Compqnies in Dow&Jones Index ########
-
-SP500_url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
-
-#read in the url and scrape ticker data
-data_table = pd.read_html(SP500_url)
+import numpy as np
 
 
-tickers = data_table[0][1:][0].tolist()
-###------- Fetching the data from Yahoo Finance----####
-## This takes a lot of time to execute##
+
+#------------------Collecting the list of Compqnies in Dow&Jones Index------------------------------------#
+
+sp500_url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+
+#------------------reading the data from website by scraping the company symbol data------------------------#
+SP500_Dataframe = pd.read_html(sp500_url)
+
+
+tickers = SP500_Dataframe[0][1:][0].tolist()
+###----------------- Fetching the data from Yahoo Finance------------------------####
+
 stock_prices = pd.DataFrame()
 for t in tickers:
     try:
@@ -58,15 +57,11 @@ plt.show()
 
 kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
 y_kmeans = kmeans.fit_predict(return_and_volatility_datfarame)
-# print(type(y_kmeans))
-# print(y_kmeans)
-return_and_volatility_datfarame.sort_index(inplace=True)
-return_and_volatility_datfarame.reset_index(level=['Company Symbol'], inplace =True)
-return_and_volatility_datfarame["Cluster Number"] = y_kmeans
 
-#-----Getting the data on local----#
-#I prefer taking data in csv or excel so that I can Visualise it in tableau#
-return_and_volatility_datfarame.to_csv("Clustered_S&P500.csv")
+return_and_volatility_datfarame.reset_index(level=['Company Symbol'], inplace =True)
+return_and_volatility_datfarame["Cluster Name"] = y_kmeans
+
+
 
 ####----------------------Visualising the S&P 500-----------####
 numeric_values = return_and_volatility_datfarame.iloc[:,[1,2]]
@@ -82,6 +77,18 @@ plt.ylabel('Risk (%)')
 plt.legend()
 plt.show()
 
+##-------------------Renaming the Clusters-----------##
+
+return_and_volatility_datfarame["Cluster Name"] = return_and_volatility_datfarame["Cluster Name"].replace(0,"Low")
+return_and_volatility_datfarame["Cluster Name"] = return_and_volatility_datfarame["Cluster Name"].replace(1,"Highest")
+return_and_volatility_datfarame["Cluster Name"] = return_and_volatility_datfarame["Cluster Name"].replace(2,"High")
+return_and_volatility_datfarame["Cluster Name"] = return_and_volatility_datfarame["Cluster Name"].replace(3,"Medium")
+
+#-----Getting the data on local----#
+#I prefer taking data in csv or excel so that I can Visualise it in tableau#
+return_and_volatility_datfarame.to_csv("Clustered_S&P500.csv")
+
+
 
 ##------------Identifying and ommiting the outlier---------#
 #after Visualising I have discovered that there a outlier. In case of stock outliers can be interesting
@@ -89,24 +96,12 @@ plt.show()
 return_and_volatility_datfarame = return_and_volatility_datfarame.set_index('Company Symbol')
 returns_outlier = return_and_volatility_datfarame["Annual Returns"].idxmax()
 risk_outlier = return_and_volatility_datfarame["Annual Risk"].idxmax()
-print(returns_outlier)
-print(risk_outlier)
+# print(returns_outlier)
+# print(risk_outlier)
 
-return_and_volatility_datfarame.drop('BHF',inplace=True)
+return_and_volatility_datfarame.drop(risk_outlier,inplace=True)
 
-return_and_volatility_datfarame.reset_index(level=['Company Symbol'], inplace =True)
+# list_of_companies = list_of_companies.remove("Security")
+return_and_volatility_datfarame.sort_index(inplace=True)
 
 return_and_volatility_datfarame.to_csv("Outlier_Free_Clustered_S&P500.csv")
-##---Visualising the Outlier Free Clusters---##
-numeric_values = return_and_volatility_datfarame.iloc[:,[1,2]]
-
-plt.scatter(numeric_values[y_kmeans == 0, 0], numeric_values[y_kmeans == 0, 1], s = 100, c = 'red', label = 'Cluster 1')
-plt.scatter(numeric_values[y_kmeans == 1, 0], numeric_values[y_kmeans == 1, 1], s = 100, c = 'blue', label = 'Cluster 2')
-plt.scatter(numeric_values[y_kmeans == 2, 0], numeric_values[y_kmeans == 2, 1], s = 100, c = 'green', label = 'Cluster 3')
-# plt.scatter(numeric_values[y_kmeans == 3, 0], numeric_values[y_kmeans == 3, 1], s = 100, c = 'cyan', label = 'Cluster 4')
-plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s = 300, c = 'yellow', label = 'Centroids')
-plt.title('Clusters of Copmanies')
-plt.xlabel('Returns (%)')
-plt.ylabel('Risk (%)')
-plt.legend()
-plt.show()
