@@ -105,3 +105,64 @@ return_and_volatility_datfarame.drop(risk_outlier,inplace=True)
 return_and_volatility_datfarame.sort_index(inplace=True)
 
 return_and_volatility_datfarame.to_csv("Outlier_Free_Clustered_S&P500.csv")
+###------------------Portfolio Optmisation-------------###
+# now that we have created the segmented (clustered) the stocks on the
+# basis of their annual risk and return. Its the time to create a portfolio that gives the
+# optmised combination of number share of companies that should be present in a portfolioself.
+
+# you can select any companies based from all three/four clusters.For this example
+# I am selecting companies with maximum annual return from each clusters
+
+#-------Lets get the company with maximum annual return and risk from all the clusters---###
+portfolio_dataFrame = return_and_volatility_datfarame.groupby("Cluster Name").idxmax()
+portfolio_list = list(portfolio_dataFrame["Annual Returns"]) #to the list of companies with max return
+
+##-------creating covariance matrix----------##
+
+# from my previous project where I used to work for financial client
+# I remember very well that I had designed an alogorithm to calculate the portfolio based
+# on annual return which had led to a huge mess and riot followed by escalation ;)
+# now I remeber very well that we need to calculate just the mean daily
+# optimised_portfolio_dataFrame = stock_prices[portfolio_list]
+daily_return = stock_prices[portfolio_list].pct_change()
+daily_mean_returns = daily_return.mean() # this will generate a series with three rows
+covariance_matrix = daily_return.cov() # this will generate a 3X3 matrix
+
+
+##-----------setting up portfolio weights-----#####
+portfolios_weight = 25000
+
+#set up array to hold results
+#We have increased the size of the array to hold the weight values for each stock
+results = np.zeros((4+len(portfolio_list)-1,portfolios_weight))
+
+###------------Monte Carlo Simulation----------####
+for i in range(portfolios_weight):
+    #select random weights for portfolio holdings
+    weights = np.array(np.random.random(len(portfolio_list)))
+    #rebalance weights to sum to 1
+    weights /= np.sum(weights)
+    #calculate portfolio return and volatility
+    portfolio_return = np.sum(daily_mean_returns * weights) * 252
+    portfolio_risk = np.sqrt(np.dot(weights.T,np.dot(covariance_matrix, weights))) * np.sqrt(252)
+
+    #store results in results array
+    results[0,i] = portfolio_return
+    results[1,i] = portfolio_risk
+    #store Sharpe Ratio (return / volatility) - risk free rate element excluded for simplicity
+    results[2,i] = results[0,i] / results[1,i]
+    #iterate through the weight vector and add data to results array
+    for j in range(len(weights)):
+        results[j+3,i] = weights[j]
+
+#convert results array to Pandas DataFrame
+results_frame = pd.DataFrame(results.T)#columns=['ret','stdev','sharpe',stocks[0],stocks[1],stocks[2],stocks[3]])
+results_frame.columns = "Return Risk SharpeRatio".split() + portfolio_list
+
+results_frame.to_csv("optimized_portfolio.csv")
+#locate position of portfolio with highest and lowest Sharpe Ratio
+highest_SharpeRatio = results_frame.iloc[results_frame['SharpeRatio'].idxmax()]
+lowest_SharpeRatio = results_frame.iloc[results_frame['Risk'].idxmin()]
+
+print("The latest best investment with highest risk and return in S&P 500 Companies is :\n ",highest_SharpeRatio)
+print("The latest best investment with lowest risk and return in S&P 500 Companies is :\n ",lowest_SharpeRatio)
