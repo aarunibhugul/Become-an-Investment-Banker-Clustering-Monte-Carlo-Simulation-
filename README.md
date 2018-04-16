@@ -1,4 +1,5 @@
 # Clustering + Portfolio-Optimisation-of-Stock-data
+##I will upload the entire project report and flow of the code, once I am able to find a moment after completing my exams. 
 ## Aim of the Project:
 >To create an optimsed portfolio that determines the optmium combination and number(s) of each security in order to maximise the portfolio return subjected to the applicable risk.  
 
