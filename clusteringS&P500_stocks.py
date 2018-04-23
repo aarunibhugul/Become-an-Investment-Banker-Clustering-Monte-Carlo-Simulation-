@@ -8,7 +8,7 @@ import numpy as np
 
 
 
-#------------------Collecting the list of Companies in Dow&Jones Index------------------------------------#
+#------------------Collecting the list of Companies in S&P500 Index------------------------------------#
 
 sp500_url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
 
