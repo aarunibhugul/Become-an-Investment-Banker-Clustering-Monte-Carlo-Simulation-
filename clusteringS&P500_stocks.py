@@ -138,22 +138,24 @@ results = np.zeros((4+len(portfolio_list)-1,portfolios_weight))
 
 ###------------Monte Carlo Simulation----------####
 for i in range(portfolios_weight):
-    #select random weights for portfolio holdings
+    #select random weights for to hold portfolio
     weights = np.array(np.random.random(len(portfolio_list)))
-    #rebalance weights to sum to 1
+    #to maintain weights of stocks to sum to 1
     weights /= np.sum(weights)
-    #calculate portfolio return and volatility
+    #calculate portfolio return
     portfolio_return = np.sum(daily_mean_returns * weights) * 252
+    #calculate portfolio volatility
     portfolio_risk = np.sqrt(np.dot(weights.T,np.dot(covariance_matrix, weights))) * np.sqrt(252)
-
-    #store results in results array
+    #store the portfolio risk in results array
     results[0,i] = portfolio_return
+    #store the portfolio return in results array
     results[1,i] = portfolio_risk
     #store Sharpe Ratio (return / volatility) - risk free rate element excluded for simplicity
     results[2,i] = results[0,i] / results[1,i]
     #iterate through the weight vector and add data to results array
     for j in range(len(weights)):
         results[j+3,i] = weights[j]
+
 
 #convert results array to Pandas DataFrame
 results_frame = pd.DataFrame(results.T)#columns=['ret','stdev','sharpe',stocks[0],stocks[1],stocks[2],stocks[3]])
