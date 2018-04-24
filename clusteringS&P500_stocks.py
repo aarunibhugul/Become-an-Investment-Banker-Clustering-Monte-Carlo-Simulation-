@@ -91,7 +91,7 @@ return_and_volatility_datfarame.to_csv("Clustered_S&P500.csv")
 
 
 ##------------Identifying and ommiting the outlier---------#
-#after Visualising I have discovered that there a outlier. In case of stock outliers can be interesting
+#after Visualising I have discovered that there is an outlier across our dataset. In case of stock data, outliers can be interesting
 #for the investors who would like to take higher risk in exchange of higher return.
 return_and_volatility_datfarame = return_and_volatility_datfarame.set_index('Company Symbol')
 returns_outlier = return_and_volatility_datfarame["Annual Returns"].idxmax()
@@ -106,7 +106,7 @@ return_and_volatility_datfarame.sort_index(inplace=True)
 
 return_and_volatility_datfarame.to_csv("Outlier_Free_Clustered_S&P500.csv")
 ###------------------Portfolio Optmisation-------------###
-# now that we have created the segmented (clustered) the stocks on the
+# now that we have created the segmented (clustered) stocks on the
 # basis of their annual risk and return. Its the time to create a portfolio that gives the
 # optmised combination of number share of companies that should be present in a portfolioself.
 
